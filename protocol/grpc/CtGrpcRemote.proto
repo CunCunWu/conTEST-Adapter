@@ -1,0 +1,395 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "HEADacoustics.ContinuousTesting.Adapter.Grpc";
+
+package CtGrpcAdapter;
+
+service CtGrpcAdapter {
+  rpc StartRecord(StartRecordRequest) returns (StartRecordReply);
+  rpc StopRecord(StopRecordRequest) returns (StopRecordReply);
+  rpc SubscribeToStates(SubscriptionRequest) returns (stream SubscribeToStatesResponse);
+  rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse);
+  rpc LoadProfile(LoadProfileRequest) returns (LoadProfileResponse);
+  rpc SetCustomName(CustomNameRequest) returns (CustomNameReply);
+  rpc IsPostProcessingServiceLicensed(IsPostProcessingServiceLicensedRequest) returns (IsPostProcessingServiceLicensedResponse);
+  rpc IsConditionMonitoringServiceLicensed(IsConditionMonitoringServiceLicensedRequest) returns (IsConditionMonitoringServiceLicensedResponse);
+  rpc GetRecorderDocumentationAttributes(GetRecorderDocumentationAttributesRequest) returns (GetRecorderDocumentationAttributesResponse);
+  rpc SetRecorderDocumentationAttributeValue(SetRecorderDocumentationAttributeValueRequest) returns (SetRecorderDocumentationAttributeValueResponse);
+  rpc SubscribeToSystemEvents(SubscriptionRequest) returns (stream SubscribeToSystemEventsResponse);
+}
+
+service PostProcessingService{
+  rpc StartRecord(StartRecordRequest) returns (StartRecordReply);
+  rpc StopRecord(StopRecordRequest) returns (StopRecordReply);
+
+  rpc GetVariables(GetVariablesRequest) returns (GetVariablesReply);
+  rpc SetVariable(SetVariableRequest) returns (SetVariableReply);
+
+  rpc SubscribeToResults(SubscriptionRequest) returns (stream SubscribeToResultsResponse);
+}
+
+service ConditionMonitoringService{
+  rpc Get1DAnalyses(Get1DAnalysesRequest) returns (Get1DAnalysesResponse);
+  rpc Get2DEquidistantAnalyses(Get2DEquidistantAnalysesRequest) returns (Get2DEquidistantAnalysesResponse);
+  rpc Get2DBandAnalyses(Get2DBandAnalysesRequest) returns (Get2DBandAnalysesResponse);
+
+  rpc SubscribeTo1DAnalysis(SubscribeToAnalysisRequest) returns (stream Analysis1DResponse);
+  rpc SubscribeTo2DEquidistantAnalysis(SubscribeToAnalysisRequest) returns (stream Analysis2DEquidistantResponse);
+  rpc SubscribeTo2DBandAnalysis(SubscribeToAnalysisRequest) returns (stream Analysis2DBandResponse);
+
+  rpc GetMonitoringConditions(GetMonitoringConditionsRequest) returns (GetMonitoringConditionsResponse);
+  rpc SubscribeToConditionMonitoring(SubscribeToConditionMonitoringRequest) returns (stream SubscribeToConditionMonitoringResponse);
+  rpc SetMonitoringConditionOptions(SetMonitoringConditionOptionsRequest) returns (SetMonitoringConditionOptionsResponse);
+}
+
+service LiveMonitoringService{
+  rpc StartLiveMonitoring(StartLiveMonitoringRequest) returns (StartLiveMonitoringResponse);
+  rpc StopLiveMonitoring(StopLiveMonitoringRequest) returns (StopLiveMonitoringResponse);
+  rpc SubscribeToLiveMonitoringStatus(SubscribeToLiveMonitoringStatusRequest) returns (stream SubscribeToLiveMonitoringStatusResponse);
+  rpc GetCurrentLiveMonitoringState(GetCurrentLiveMonitoringStateRequest) returns (GetCurrentLiveMonitoringStateResponse);
+}
+
+message StartRecordRequest {
+}
+
+message StartRecordReply {
+  bool started = 1;
+}
+
+message StopRecordRequest {
+}
+
+message StopRecordReply {
+     bool stopped = 1;
+}
+
+message CustomNameRequest {
+    string customName = 1;
+}
+
+message CustomNameReply {
+
+}
+
+message GetVariablesRequest {
+}
+
+message GetVariablesReply {
+    repeated string variables = 1;
+}
+
+message SetVariableRequest {
+    string name = 1;
+    string value = 2;
+}
+
+message SetVariableReply {
+}
+
+message GetProfilesRequest {
+}
+
+message GetProfilesResponse {
+    repeated string profiles = 1;
+}
+
+message LoadProfileRequest {
+    string profile = 1;
+}
+
+message LoadProfileResponse {
+    bool success = 1;
+}
+
+message SubscribeToAnalysisRequest {
+    string id = 1;
+    string analysisName = 2;
+}
+
+message Get1DAnalysesRequest {
+}
+
+message Get1DAnalysesResponse {
+    repeated string AnalysesNames = 1;
+}
+
+message Get2DEquidistantAnalysesRequest {
+}
+
+message Get2DBandAnalysesRequest {
+}
+
+message Get2DEquidistantAnalysesResponse {
+    repeated string AnalysesNames = 1;
+}
+
+message Get2DBandAnalysesResponse {
+    repeated string AnalysesNames = 1;
+}
+
+message Analysis1DResponse {
+    string analysisName = 1;
+    string channelName = 2;
+    double value = 3;
+    string unit = 4;
+}
+
+message Analysis2DEquidistantResponse {
+    string analysisName = 1;
+    string channelName = 2;
+    repeated float value = 3;
+    string unit = 100;
+    double first = 101;
+    double delta = 102;
+    string abscissaUnit = 103;
+}
+
+message Analysis2DBandResponse {
+    string analysisName = 1;
+    string channelName = 2;
+    repeated float value = 3;
+    string unit = 100;
+    double first = 101;
+    double last = 102;
+    string bandType = 103;
+}
+
+enum ModuleState {
+    Disabled = 0;
+    Idle = 1;
+    Running = 2;
+}
+
+message ModuleStates {
+    ModuleState RecorderState = 1;
+    ModuleState AnalysisState = 2;
+    ModuleState EvaluatorState = 3;
+}
+
+message SubscriptionRequest {
+    string id = 1;
+}
+
+message SubscribeToStatesResponse {
+    ModuleStates states = 1;
+}
+
+message SubscribeToResultsResponse {
+    string id = 1;
+    google.protobuf.Timestamp Timestamp = 2;
+    string CustomName = 3;
+    RecordingSummary recordingSummary = 4;
+    CalculationSummary calculationSummary = 5;
+    EvaluationSummary evaluationSummary = 6;
+}
+
+message RecordingSummary{
+    string File = 1;
+    Result success = 2;
+}
+
+enum Result {
+    Failed = 0;
+    Succeeded = 1;
+}
+
+message CalculationSummary 	{
+    Result OverallSuccess = 1;
+    repeated CalculationResult Results  = 2;
+}
+
+message CalculationResult {
+    string Name = 1;
+    Result Success = 2;
+    repeated string ResultFiles = 3;
+    repeated string Errors = 4;
+}
+
+message EvaluationSummary {
+    Result OverallSuccess = 1;
+    string Classification = 2;
+    repeated EvaluationResult  Results = 3;
+}
+
+message EvaluationResult {
+    string ResultName = 1 [deprecated = true];
+    bool Success = 2;
+    string Filename = 3;
+    string ChannelName = 4;
+    Tolerance Tolerance = 5;
+    SingleValue SingleValue = 6;
+
+    repeated string Errors = 100;
+}
+
+message Tolerance     {
+    string Name = 1;
+    ToleranceRole Role = 2;
+    double Limit = 3;
+}
+
+enum ToleranceRole {
+    None = 0;
+    Lower = 1;
+    Upper =2;
+}
+
+message SingleValue {
+    string Name  = 1;
+    double Value = 2;
+    string Unit = 3;
+    string Quantity = 4;
+}
+
+message IsPostProcessingServiceLicensedRequest {
+}
+
+message IsConditionMonitoringServiceLicensedRequest {
+}
+
+message IsPostProcessingServiceLicensedResponse {
+    bool isLicensed = 1;
+}
+
+message IsConditionMonitoringServiceLicensedResponse {
+    bool isLicensed = 1;
+}
+
+message GetRecorderDocumentationAttributesRequest {
+}
+
+message GetRecorderDocumentationAttributesResponse {
+    repeated RecorderDocumentationAttribute attributes = 1;
+}
+
+message RecorderDocumentationAttribute {
+    string identifier = 1;
+    string dataType = 2;
+}
+
+message SetRecorderDocumentationAttributeValueRequest {
+    string attributeIdentifier = 1;
+    string value = 2;
+}
+
+message SetRecorderDocumentationAttributeValueResponse {
+    bool success = 1;
+}
+
+message GetMonitoringConditionsRequest {
+}
+
+message GetMonitoringConditionsResponse {
+    repeated MonitoringCondition conditions = 1;
+}
+
+message MonitoringCondition{
+    string id = 1;
+    string name = 2;
+    ConditionMonitoringType type = 3;
+    oneof conditionInfo {
+        ThresholdBasedConditionInfo thresholdBasedConditionInfo = 4;
+        ToleranceFileBasedConditionInfo toleranceFileBasedConditionInfo = 5;
+    }
+}
+
+message SubscribeToConditionMonitoringRequest {
+    string id = 1;
+}
+
+message SubscribeToConditionMonitoringResponse {
+    string id = 1;
+    bool isOutOfBounds = 2;
+}
+
+message SubscribeToSystemEventsResponse {
+    SystemEventType type = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string loggerName = 3;
+    string message = 4;
+}
+
+enum SystemEventType {
+    Info = 0;
+    Warning = 1;
+    Error = 2;
+}
+
+enum ConditionMonitoringType
+{
+    ThresholdBased = 0;
+    ToleranceFileBased = 1;
+}
+
+message ThresholdBasedConditionInfo
+{
+    double threshold = 1;
+}
+
+message ToleranceFileBasedConditionInfo
+{
+    string toleranceFile = 1;
+    optional string upperCurve = 2;
+    optional string lowerCurve = 3;
+}
+
+message SetMonitoringConditionOptionsRequest
+{
+    string id = 1;
+    oneof conditionInfo {
+        ThresholdBasedConditionInfo thresholdBasedConditionIno = 2;
+        ToleranceFileBasedConditionInfo toleranceFileBasedConditionInfo = 3;
+    }
+}
+
+message SetMonitoringConditionOptionsResponse
+{
+    bool success = 1;
+}
+
+message StartLiveMonitoringRequest
+{
+}
+
+message StartLiveMonitoringResponse
+{
+    bool success = 1;
+}
+
+message StopLiveMonitoringRequest
+{
+}
+
+message StopLiveMonitoringResponse
+{
+    bool success = 1;
+}
+
+message SubscribeToLiveMonitoringStatusRequest
+{
+    string id = 1;
+}
+
+message SubscribeToLiveMonitoringStatusResponse
+{
+    LiveMonitoringEventType status = 1;
+}
+
+enum LiveMonitoringEventType
+{
+    Started = 0;
+    Stopped = 1;
+    Configured = 2;
+    NotConfigured = 3;
+}
+
+message GetCurrentLiveMonitoringStateRequest
+{
+}
+
+message GetCurrentLiveMonitoringStateResponse
+{
+    bool isConfigured = 1;
+    bool isMonitoring = 2;
+}
